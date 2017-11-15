@@ -14,7 +14,7 @@ func main() {
 	var f = flag.String("f", "domain.txt", "file: specify textfile written domain name")
 	var d = flag.Int64("d", 10, "duration: how many secods should continues")
 	flag.Parse()
-	rate := uint64(*r)
+	sleep_time := time.Duration(1e9 / uint64(*r))
 	file := string(*f)
 	duration := time.Duration(*d) * time.Second
 
@@ -42,13 +42,13 @@ func main() {
 	}
 
 	for _, domain := range list {
-		go autodig(domain, rate)
+		go autodig(domain, sleep_time)
 	}
 	time.Sleep(duration)
 	fmt.Println("exit status 0")
 }
 
-func autodig(domain string, rate uint64) {
+func autodig(domain string, sleep_time time.Duration) {
 	var count int
 	for {
 		_, err := net.LookupHost(domain)
@@ -61,7 +61,7 @@ func autodig(domain string, rate uint64) {
 			}
 			continue
 		}
-		time.Sleep(time.Duration(1e9 / rate))
+		time.Sleep(sleep_time)
 		count = 0
 	}
 }

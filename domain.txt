@@ -19,3 +19,14 @@ facebook.com
 gree.jp
 cyberagent.co.jp
 archlinux.jp
+amazon.co.jp
+weblio.jp
+nicovideo.jp
+kakaku.com
+bitly.com
+youtube.com
+d-card.jp
+dpoint.jp
+eplus.jp
+rakuten.co.jp
+connpass.com

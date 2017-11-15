@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -9,18 +10,27 @@ import (
 )
 
 func main() {
+	var r = flag.Uint64("r", 10, "rate: how many api calls should executes in one second")
+	var f = flag.String("f", "domain.txt", "file: specify textfile written domain name")
+	var d = flag.Int64("d", 10, "duration: how many secods should continues")
+	flag.Parse()
+	rate := uint64(*r)
+	file := string(*f)
+	duration := time.Duration(*d) * time.Second
+
+	if f == nil {
+		fmt.Println("Error: must specify some file for -f")
+		os.Exit(1)
+	}
+
 	var fp *os.File
 	var err error
 
-	if len(os.Args) < 2 {
-		fp = os.Stdin
-	} else {
-		fp, err = os.Open(os.Args[1])
-		if err != nil {
-			panic(err)
-		}
-		defer fp.Close()
+	fp, err = os.Open(file)
+	if err != nil {
+		panic(err)
 	}
+	defer fp.Close()
 
 	var list []string
 	scanner := bufio.NewScanner(fp)
@@ -32,13 +42,13 @@ func main() {
 	}
 
 	for _, domain := range list {
-		go dig(domain)
+		go autodig(domain, rate)
 	}
-	time.Sleep(60 * time.Second)
-	fmt.Println("exit status 1")
+	time.Sleep(duration)
+	fmt.Println("exit status 0")
 }
 
-func dig(domain string) {
+func autodig(domain string, rate uint64) {
 	var count int
 	for {
 		_, err := net.LookupHost(domain)
@@ -46,11 +56,12 @@ func dig(domain string) {
 			fmt.Println(err)
 			count++
 			if count >= 3 {
+				fmt.Println("exit status 1")
 				os.Exit(1)
 			}
 			continue
 		}
-		time.Sleep(1000000)
+		time.Sleep(time.Duration(1e9 / rate))
 		count = 0
 	}
 }

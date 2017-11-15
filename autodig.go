@@ -42,26 +42,24 @@ func main() {
 	}
 
 	for _, domain := range list {
-		go autodig(domain, rate)
+		go func() {
+			var count int
+			for {
+				_, err := net.LookupHost(domain)
+				if err != nil {
+					fmt.Println(err)
+					count++
+					if count >= 3 {
+						fmt.Println("exit status 1")
+						os.Exit(1)
+					}
+					continue
+				}
+				time.Sleep(time.Duration(1e9 / rate))
+				count = 0
+			}
+		}()
 	}
 	time.Sleep(duration)
 	fmt.Println("exit status 0")
-}
-
-func autodig(domain string, rate uint64) {
-	var count int
-	for {
-		_, err := net.LookupHost(domain)
-		if err != nil {
-			fmt.Println(err)
-			count++
-			if count >= 3 {
-				fmt.Println("exit status 1")
-				os.Exit(1)
-			}
-			continue
-		}
-		time.Sleep(time.Duration(1e9 / rate))
-		count = 0
-	}
 }

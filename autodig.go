@@ -10,13 +10,15 @@ import (
 )
 
 func main() {
-	var r = flag.Uint64("r", 10, "rate: how many api calls should executes in one second")
-	var f = flag.String("f", "domain.txt", "file: specify textfile written domain name")
 	var d = flag.Int64("d", 10, "duration: how many secods should continues")
+	var f = flag.String("f", "domain.txt", "file: specify textfile written domain name")
+	var n = flag.Int("n", 10, "parallel: how many requests in parallel [real requests: r * n]")
+	var r = flag.Uint64("r", 10, "rate: how many api calls should executes in one second [real requests: r * n]")
 	flag.Parse()
-	sleep_time := time.Duration(1e9 / uint64(*r))
-	file := string(*f)
 	duration := time.Duration(*d) * time.Second
+	file := string(*f)
+	num := int(*n)
+	sleep_time := time.Duration(1e9 / uint64(*r))
 
 	if f == nil {
 		fmt.Println("Error: must specify some file for -f")
@@ -42,7 +44,9 @@ func main() {
 	}
 
 	for _, domain := range list {
-		go autodig(domain, sleep_time)
+		for i := 0; i < num; i++ {
+			go autodig(domain, sleep_time)
+		}
 	}
 	time.Sleep(duration)
 	fmt.Println("exit status 0")
